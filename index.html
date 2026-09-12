@@ -1,112 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InternLoom — Smart Shortlisting Engine</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InternLoom — Dynamic AI Candidate Shortlisting Engine</title>
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
 
-  <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900 sticky top-0 z-50">
+  <!-- Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="bg-indigo-600 p-2 rounded-lg text-white">
+        <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-indigo-500/30">
           <i data-lucide="cpu" class="w-5 h-5"></i>
         </div>
         <div>
           <span class="font-bold text-lg tracking-tight text-white">InternLoom AI</span>
-          <span class="text-xs text-slate-400 block -mt-1">Smart Candidate Evaluator</span>
+          <span class="text-xs text-slate-400 block -mt-1">Dynamic Shortlist & Evaluation Engine</span>
         </div>
       </div>
-      <div>
+      
+      <div class="flex items-center gap-3">
         <span class="text-xs font-mono px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-          Resumes in Pool: <span id="poolBadge">3</span>
+          Evaluated Resumes: <span id="poolBadge">3</span>
         </span>
       </div>
     </div>
   </header>
 
-  <!-- Main Grid -->
+  <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
     
-    <!-- Left Panel -->
+    <!-- Left Column: Controls & Input -->
     <section class="lg:col-span-5 space-y-6">
       
-      <!-- JD Input -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
-        <h2 class="font-semibold text-slate-200 text-sm flex items-center gap-2">
-          <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
-          1. Job Description
-        </h2>
+      <!-- 1. Job Description Input -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold text-slate-200 text-sm flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
+            1. Job Description Input
+          </h2>
+          <span class="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Dynamic AI Context</span>
+        </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Target Requirements</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Target Role Title</label>
+          <input type="text" id="roleTitle" value="Backend Developer (Node.js & Cloud)" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Paste Job Requirements / Skills</label>
           <textarea id="jdText" rows="4" 
-            class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 focus:border-indigo-500 outline-none">Looking for a Backend Engineer with experience in Node.js, Express, MongoDB, AWS, Docker, and REST APIs. Experience writing unit tests with Jest or Mocha is required.</textarea>
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 focus:outline-none focus:border-indigo-500">Looking for a Backend Engineer with experience in Node.js, Express, MongoDB, AWS, Docker, and REST APIs. Experience writing unit tests with Jest or Mocha is required.</textarea>
         </div>
       </div>
 
-      <!-- Add Candidate Form -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+      <!-- 2. Dynamic Resume Parser (Upload & Manual) -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
         <h2 class="font-semibold text-slate-200 text-sm flex items-center gap-2">
-          <i data-lucide="user-plus" class="w-4 h-4 text-indigo-400"></i>
-          2. Add Candidate Manually
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-400"></i>
+          2. Candidate Intake (Files & Manual)
         </h2>
-        <input id="manualName" type="text" placeholder="Candidate Name (e.g. Sanya Gupta)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none">
-        <textarea id="manualText" rows="3" placeholder="Paste Resume text summary..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 outline-none"></textarea>
-        <button type="button" onclick="addCandidate()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2 rounded-lg font-medium transition">
-          + Add Candidate to Pool
-        </button>
+        
+        <!-- File Dropzone -->
+        <div class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl p-4 text-center cursor-pointer transition bg-slate-950/40 relative">
+          <input type="file" id="fileInput" multiple accept=".pdf,.txt" onchange="handleFileUpload(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+          <i data-lucide="file-up" class="w-6 h-6 mx-auto text-indigo-400 mb-2"></i>
+          <p class="text-xs font-medium text-slate-300">Drop PDF or TXT Resumes here</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Automated text extractions via PDF.js</p>
+        </div>
+
+        <!-- Manual Input Alternative -->
+        <div class="border-t border-slate-800/80 pt-3 space-y-2">
+          <span class="text-xs font-medium text-slate-400">Add Candidate Manually</span>
+          <input id="manualName" type="text" placeholder="Candidate Name (e.g. Sanya Gupta)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+          <textarea id="manualText" rows="2" placeholder="Paste candidate resume content..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"></textarea>
+          <button type="button" onclick="addManualCandidate()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2 rounded-lg font-medium transition flex items-center justify-center gap-1.5">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Candidate to Pool
+          </button>
+        </div>
       </div>
 
-      <!-- Algorithm Weights & Run Button -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+      <!-- 3. Algorithm Weights Slider & Live Trigger -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
         <h3 class="font-semibold text-slate-200 text-sm flex items-center gap-2">
           <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
-          3. Algorithm Tuning
+          3. Algorithm Weights
         </h3>
-        <div>
-          <div class="flex justify-between text-xs mb-1">
-            <span class="text-slate-300">Semantic Matching Weight</span>
-            <span id="semWeightText" class="font-mono text-indigo-400">60%</span>
+        
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Semantic Matching Weight</span>
+              <span id="semWeightText" class="font-mono text-indigo-400">60%</span>
+            </div>
+            <input type="range" id="semWeightSlider" min="0" max="100" value="60" oninput="updateWeightsUI()" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
           </div>
-          <input type="range" id="semWeightSlider" min="0" max="100" value="60" oninput="updateWeightsUI()" class="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+
+          <div class="flex justify-between text-xs text-slate-400">
+            <span>Exact Keyword Match Weight</span>
+            <span id="keyWeightText" class="font-mono text-slate-400">40%</span>
+          </div>
         </div>
 
-        <button type="button" onclick="evaluatePool()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-indigo-600/20">
-          <i data-lucide="play" class="w-4 h-4"></i> Evaluate & Rank Candidates Live
+        <button type="button" onclick="evaluatePool()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-indigo-600/20 active:scale-[0.99]">
+          <i data-lucide="play" class="w-4 h-4 fill-current"></i> Evaluate & Rank Candidates Live
         </button>
       </div>
 
     </section>
 
-    <!-- Right Panel (Results Output) -->
+    <!-- Right Column: Results & Explainability Output -->
     <section class="lg:col-span-7 space-y-6">
+      
       <div class="flex items-center justify-between">
-        <h2 class="font-semibold text-xl text-slate-100">Ranked Results</h2>
-        <button type="button" onclick="clearPool()" class="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-lg">
-          Clear All
+        <div>
+          <h2 class="font-semibold text-xl text-slate-100">Shortlisted Candidates</h2>
+          <p class="text-xs text-slate-400">Real-time dynamic ranking powered by hybrid semantic scoring</p>
+        </div>
+        <button type="button" onclick="clearPool()" class="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 px-3 py-1 rounded-lg transition">
+          Clear Pool
         </button>
       </div>
 
-      <!-- Container where JavaScript injects output -->
+      <!-- Live Dynamic Output Container -->
       <div id="resultsContainer" class="space-y-4">
-        <!-- Default State loaded via JS -->
+        <!-- Javascript renders cards here -->
       </div>
+
     </section>
 
   </main>
 
+  <!-- JavaScript Logic -->
   <script>
-    // Lucide Icon Initializer
-    document.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-      evaluatePool(); // Run ranking immediately on startup
-    });
+    // Lucide safely render icons
+    function refreshIcons() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
 
-    // Default 3 Candidates
+    // Default Pre-loaded Candidate Pool
     let currentPool = [
       {
         id: "C-101",
@@ -116,7 +161,7 @@
       {
         id: "C-102",
         name: "Rohan Verma",
-        rawText: "Software Engineer specializing in Koa backend development, Mocha testing, NoSQL MongoDB database architecture, and AWS deployment."
+        rawText: "Software Engineer specializing in Koa backend development, Mocha testing, NoSQL MongoDB database architecture, and AWS cloud deployment."
       },
       {
         id: "C-103",
@@ -125,38 +170,77 @@
       }
     ];
 
+    // Semantic Mapping Dictionary
     const semanticMap = {
-      "express": "Node.js", "express.js": "Node.js", "koa": "Node.js",
-      "fastapi": "Python", "django": "Python",
-      "postgres": "PostgreSQL", "mongo": "MongoDB", "mongoose": "MongoDB",
+      "express": "Node.js", "express.js": "Node.js", "nest.js": "Node.js", "koa": "Node.js",
+      "fastapi": "Python", "flask": "Python", "django": "Python",
+      "postgres": "PostgreSQL", "mysql": "SQL", "sqlite": "SQL",
+      "mongo": "MongoDB", "mongoose": "MongoDB",
       "jest": "Unit Testing", "mocha": "Unit Testing", "pytest": "Unit Testing",
-      "aws": "Cloud", "docker": "DevOps"
+      "aws": "Cloud", "ec2": "Cloud", "s3": "Cloud",
+      "docker": "DevOps", "kubernetes": "DevOps"
     };
 
     function updateWeightsUI() {
-      const val = document.getElementById('semWeightSlider').value;
-      document.getElementById('semWeightText').innerText = val + "%";
+      const semVal = parseInt(document.getElementById('semWeightSlider').value);
+      document.getElementById('semWeightText').innerText = `${semVal}%`;
+      document.getElementById('keyWeightText').innerText = `${100 - semVal}%`;
+      evaluatePool(); // Live re-rank on slider change
     }
 
-    function addCandidate() {
-      const name = document.getElementById('manualName').value.trim();
-      const text = document.getElementById('manualText').value.trim();
+    async function extractTextFromPDF(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        fullText += textContent.items.map(item => item.str).join(" ") + " ";
+      }
+      return fullText;
+    }
 
-      if (!name || !text) {
+    async function handleFileUpload(event) {
+      const files = event.target.files;
+      if (!files.length) return;
+
+      for (let file of files) {
+        let text = "";
+        if (file.name.endsWith('.pdf')) {
+          text = await extractTextFromPDF(file);
+        } else {
+          text = await file.text();
+        }
+
+        currentPool.push({
+          id: "C-" + Math.floor(100 + Math.random() * 900),
+          name: file.name.replace(/\.[^/.]+$/, ""),
+          rawText: text
+        });
+      }
+
+      document.getElementById('poolBadge').innerText = currentPool.length;
+      evaluatePool();
+    }
+
+    function addManualCandidate() {
+      const nameInput = document.getElementById('manualName');
+      const textInput = document.getElementById('manualText');
+
+      if (!nameInput.value.trim() || !textInput.value.trim()) {
         alert("Please enter both Candidate Name and Resume Text!");
         return;
       }
 
       currentPool.push({
         id: "C-" + Math.floor(100 + Math.random() * 900),
-        name: name,
-        rawText: text
+        name: nameInput.value.trim(),
+        rawText: textInput.value.trim()
       });
 
-      document.getElementById('manualName').value = "";
-      document.getElementById('manualText').value = "";
+      nameInput.value = "";
+      textInput.value = "";
       document.getElementById('poolBadge').innerText = currentPool.length;
-      
       evaluatePool();
     }
 
@@ -164,18 +248,25 @@
       currentPool = [];
       document.getElementById('poolBadge').innerText = "0";
       document.getElementById('resultsContainer').innerHTML = `
-        <div class="border border-slate-800 border-dashed rounded-xl p-8 text-center text-slate-500 text-xs">
-          Pool cleared. Add candidates on the left to evaluate.
+        <div id="emptyState" class="border border-slate-800 border-dashed rounded-xl p-12 text-center text-slate-500 space-y-3">
+          <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-600"></i>
+          <p class="text-xs">Pool cleared. Upload new resumes or add candidates to start evaluating.</p>
         </div>
       `;
+      refreshIcons();
+    }
+
+    function extractKeywordsFromJD(jdText) {
+      const commonTech = [
+        "node.js", "nodejs", "express", "mongodb", "aws", "docker", "rest", "apis", "jest", "mocha", "python", "postgresql"
+      ];
+      const words = jdText.toLowerCase().match(/\b[a-z0-9\.\+\#\-]+\b/g) || [];
+      return Array.from(new Set(words.filter(w => commonTech.includes(w))));
     }
 
     function evaluatePool() {
-      const container = document.getElementById('resultsContainer');
-      if (!container) return;
-
       if (currentPool.length === 0) {
-        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-8">No candidates in pool.</div>`;
+        alert("Please upload resumes or add candidates to the pool before running evaluation!");
         return;
       }
 
@@ -183,71 +274,142 @@
       const semWeight = parseInt(document.getElementById('semWeightSlider').value) / 100;
       const keyWeight = 1 - semWeight;
 
-      const targetSkills = ["node.js", "express", "mongodb", "aws", "docker", "rest", "jest", "mocha"];
+      const targetSkills = extractKeywordsFromJD(jdText);
+      const activeSkills = targetSkills.length > 0 ? targetSkills : ["node.js", "express", "mongodb", "aws", "docker", "rest", "jest", "mocha"];
 
-      const evaluated = currentPool.map(c => {
-        const text = c.rawText.toLowerCase();
-        let exact = [];
-        let semantic = [];
-        let missing = [];
+      const evaluated = currentPool.map(candidate => {
+        const resumeLower = candidate.rawText.toLowerCase();
+        
+        let exactMatches = [];
+        let semanticBridges = [];
+        let missingSkills = [];
 
-        targetSkills.forEach(skill => {
-          if (text.includes(skill)) {
-            exact.push(skill.toUpperCase());
+        activeSkills.forEach(skill => {
+          if (resumeLower.includes(skill)) {
+            exactMatches.push(skill.toUpperCase());
           } else {
-            let foundSem = false;
-            for (let [syn, core] of Object.entries(semanticMap)) {
-              if (core.toLowerCase() === skill && text.includes(syn)) {
-                semantic.push({ syn: syn.toUpperCase(), core: core.toUpperCase() });
-                foundSem = true;
+            let matchedViaSemantic = false;
+            for (let [synonym, coreSkill] of Object.entries(semanticMap)) {
+              if (coreSkill.toLowerCase() === skill && resumeLower.includes(synonym)) {
+                semanticBridges.push({ synonym: synonym.toUpperCase(), core: coreSkill.toUpperCase() });
+                matchedViaSemantic = true;
                 break;
               }
             }
-            if (!foundSem) missing.push(skill.toUpperCase());
+            if (!matchedViaSemantic) {
+              missingSkills.push(skill.toUpperCase());
+            }
           }
         });
 
-        const keyScore = (exact.length / targetSkills.length) * 100;
-        const semScore = ((exact.length + semantic.length) / targetSkills.length) * 100;
-        const finalScore = Math.min(100, Math.round((semScore * semWeight) + (keyScore * keyWeight)));
+        const totalSkills = Math.max(activeSkills.length, 1);
+        const keywordScore = (exactMatches.length / totalSkills) * 100;
+        const semanticScore = ((exactMatches.length + semanticBridges.length) / totalSkills) * 100;
+        const finalScore = Math.min(100, Math.round((semanticScore * semWeight) + (keywordScore * keyWeight)));
 
-        return { ...c, exact, semantic, missing, keyScore: Math.round(keyScore), semScore: Math.round(semScore), finalScore };
+        return {
+          ...candidate,
+          exactMatches,
+          semanticBridges,
+          missingSkills,
+          keywordScore: Math.round(keywordScore),
+          semanticScore: Math.round(semanticScore),
+          finalScore
+        };
       });
 
       evaluated.sort((a, b) => b.finalScore - a.finalScore);
+      renderResults(evaluated);
+    }
 
-      container.innerHTML = evaluated.map((c, i) => `
-        <div class="border rounded-xl p-5 ${i < 3 ? 'border-indigo-500/50 bg-slate-900' : 'border-slate-800 bg-slate-900/40'}">
-          <div class="flex justify-between items-start">
+    function renderResults(rankedList) {
+      const container = document.getElementById('resultsContainer');
+      if (!container) return;
+      container.innerHTML = "";
+
+      rankedList.forEach((c, index) => {
+        const isTop3 = index < 3;
+        const rank = index + 1;
+
+        const card = document.createElement('div');
+        card.className = `border rounded-xl p-5 transition-all duration-300 ${
+          isTop3 ? 'border-indigo-500/50 bg-slate-900 shadow-lg shadow-indigo-950/30' : 'border-slate-800/80 bg-slate-900/40'
+        }`;
+
+        let top3ExplanationHTML = '';
+        if (isTop3) {
+          top3ExplanationHTML = `
+            <div class="mt-4 pt-4 border-t border-slate-800/80 bg-indigo-950/20 -mx-5 -mb-5 p-4 rounded-b-xl space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Top 3 Justification Report
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">Explainable AI</span>
+              </div>
+              
+              <p class="text-xs text-slate-300 leading-relaxed">
+                <strong>Ranked #${rank} Candidate:</strong> Candidate scored <strong>${c.finalScore}%</strong> overall. Found <strong>${c.exactMatches.length}</strong> exact tech match(es) and <strong>${c.semanticBridges.length}</strong> contextual skill equivalences.
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-lg space-y-1">
+                  <span class="text-emerald-400 font-medium flex items-center gap-1">
+                    <i data-lucide="check-circle" class="w-3 h-3"></i> Matched & Inferred
+                  </span>
+                  <div class="flex flex-wrap gap-1">
+                    ${c.exactMatches.map(m => `<span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[10px]">✓ ${m}</span>`).join('')}
+                    ${c.semanticBridges.map(b => `<span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-1.5 py-0.5 rounded text-[10px]">≈ ${b.synonym} (${b.core})</span>`).join('')}
+                    ${(c.exactMatches.length === 0 && c.semanticBridges.length === 0) ? '<span class="text-slate-500 text-[10px]">None matched</span>' : ''}
+                  </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-lg space-y-1">
+                  <span class="text-rose-400 font-medium flex items-center gap-1">
+                    <i data-lucide="x-circle" class="w-3 h-3"></i> Missing Requirements
+                  </span>
+                  <div class="flex flex-wrap gap-1">
+                    ${c.missingSkills.length > 0 ? c.missingSkills.map(m => `<span class="bg-rose-500/10 text-rose-300 border border-rose-500/20 px-1.5 py-0.5 rounded text-[10px]">✕ ${m}</span>`).join('') : '<span class="text-slate-500 text-[10px]">No missing skills</span>'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
-              <span class="w-7 h-7 rounded-full ${i < 3 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'} flex items-center justify-center text-xs font-bold">
-                #${i + 1}
-              </span>
+              <div class="w-8 h-8 rounded-full ${isTop3 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-800 text-slate-400'} flex items-center justify-center text-xs font-mono">
+                #${rank}
+              </div>
               <div>
-                <h3 class="font-bold text-slate-100 text-sm">${c.name}</h3>
-                <p class="text-xs text-slate-400 line-clamp-1 mt-0.5">${c.rawText}</p>
+                <h3 class="font-bold text-slate-100">${c.name}</h3>
+                <p class="text-xs text-slate-400 line-clamp-2 max-w-xl mt-0.5">${c.rawText}</p>
               </div>
             </div>
             <div class="text-right">
-              <span class="text-base font-bold font-mono text-indigo-400">${c.finalScore}%</span>
-            </div>
-          </div>
-
-          ${i < 3 ? `
-            <div class="mt-4 pt-3 border-t border-slate-800 text-xs space-y-2">
-              <div class="font-semibold text-indigo-400 text-[11px] uppercase tracking-wider">Top 3 Justification Report</div>
-              <div class="flex flex-wrap gap-1">
-                ${c.exact.map(m => `<span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px]">✓ ${m}</span>`).join('')}
-                ${c.semantic.map(s => `<span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded text-[10px]">≈ ${s.syn} (${s.core})</span>`).join('')}
-                ${c.missing.map(m => `<span class="bg-rose-500/10 text-rose-300 border border-rose-500/20 px-2 py-0.5 rounded text-[10px]">✕ ${m}</span>`).join('')}
+              <div class="text-lg font-bold font-mono ${isTop3 ? 'text-indigo-400' : 'text-slate-300'}">${c.finalScore}%</div>
+              <div class="text-[10px] text-slate-500 flex gap-2 font-mono">
+                <span>Sem: ${c.semanticScore}%</span>
+                <span>Key: ${c.keywordScore}%</span>
               </div>
             </div>
-          ` : ''}
-        </div>
-      `).join('');
+          </div>
+          ${top3ExplanationHTML}
+        `;
 
-      lucide.createIcons();
+        container.appendChild(card);
+      });
+
+      refreshIcons();
     }
+
+    // Run automatically on page DOM ready
+    document.addEventListener("DOMContentLoaded", () => {
+      refreshIcons();
+      document.getElementById('poolBadge').innerText = currentPool.length;
+      evaluatePool();
+    });
   </script>
 </body>
 </html>
