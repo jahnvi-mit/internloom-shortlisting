@@ -43,25 +43,36 @@
     <!-- Left Column: Inputs & Controls -->
     <section class="lg:col-span-5 space-y-6">
       
-      <!-- 1. Job Description Input -->
+      <!-- 1. Job Description Input (Now with PDF Reader) -->
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-xl">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <h2 class="font-semibold text-slate-200 text-sm flex items-center gap-2">
             <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             1. Job Description Input
           </h2>
-          <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">Dynamic AI Context</span>
+          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono">PDF Reader Enabled</span>
         </div>
         <div>
           <label class="block text-xs text-slate-400 mb-1">Target Role Title</label>
           <input id="jdTitle" type="text" value="Backend Developer (Node.js & Cloud)" 
             class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:border-indigo-500 outline-none">
         </div>
+
+        <!-- JD File Upload Dropzone -->
+        <div class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl p-3 text-center transition bg-slate-950/50">
+          <input type="file" id="jdFileInput" accept=".pdf,.txt" class="hidden" onchange="handleJDUpload(event)">
+          <label for="jdFileInput" class="cursor-pointer space-y-1 block">
+            <svg class="w-5 h-5 text-indigo-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="text-xs text-slate-300 font-medium">Upload Job Description (PDF / TXT)</div>
+            <div class="text-[10px] text-slate-500">Extracts text automatically into the box below</div>
+          </label>
+        </div>
+
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Paste Job Requirements / Skills</label>
+          <label class="block text-xs text-slate-400 mb-1">Or Paste Job Requirements / Skills</label>
           <textarea id="jdText" rows="4" 
             class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 focus:border-indigo-500 outline-none leading-relaxed"
-            placeholder="Type or paste requirements...">Looking for a Backend Engineer with experience in Node.js, Express, MongoDB, AWS, Docker, and REST APIs. Experience writing unit tests with Jest or Mocha is required.</textarea>
+            placeholder="Type, paste, or upload JD PDF...">Looking for a Backend Engineer with experience in Node.js, Express, MongoDB, AWS, Docker, and REST APIs. Experience writing unit tests with Jest or Mocha is required.</textarea>
         </div>
       </div>
 
@@ -75,7 +86,7 @@
           <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-mono">PDF Reader Enabled</span>
         </div>
 
-        <!-- File Upload Dropzone -->
+        <!-- Candidate File Upload Dropzone -->
         <div class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl p-4 text-center transition bg-slate-950/50">
           <input type="file" id="fileInput" multiple accept=".pdf,.txt" class="hidden" onchange="handleFileUpload(event)">
           <label for="fileInput" class="cursor-pointer space-y-2 block">
@@ -111,7 +122,7 @@
               <span class="text-slate-300">Semantic Matching Weight</span>
               <span id="semWeightText" class="font-mono text-indigo-400">60%</span>
             </div>
-            <input type="range" id="semWeightSlider" min="0" max="100" value="60" oninput="updateWeightsUI()" class="w-full accent-indigo-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            <input type="range" id="semWeightSlider" min="0" max="100" value="60" oninput="updateWeightsUI()" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
           </div>
           <div class="flex justify-between text-xs text-slate-400">
             <span>Exact Keyword Match Weight</span>
@@ -182,6 +193,7 @@
       evaluatePool();
     }
 
+    // PDF Text Extraction Helper
     async function extractTextFromPDF(file) {
       try {
         const arrayBuffer = await file.arrayBuffer();
@@ -199,6 +211,25 @@
       }
     }
 
+    // Handle Job Description PDF Upload
+    async function handleJDUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      let extractedText = "";
+      if (file.name.endsWith('.pdf') && typeof pdfjsLib !== 'undefined') {
+        extractedText = await extractTextFromPDF(file);
+      } else {
+        extractedText = await file.text();
+      }
+
+      if (extractedText.trim()) {
+        document.getElementById('jdText').value = extractedText.trim();
+        evaluatePool(); // Re-evaluate candidate rankings immediately with new JD text
+      }
+    }
+
+    // Handle Resumes Upload
     async function handleFileUpload(event) {
       const files = event.target.files;
       if (!files || !files.length) return;
